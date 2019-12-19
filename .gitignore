@@ -1,6 +1,4 @@
 /nbproject/
-/thinkphp/
-/vendor/
 /runtime/*
 /addons/*
 /application/admin/command/Install/*.lock
@@ -9,7 +7,6 @@
 /public/uploads/*
 .idea
 composer.lock
-*.log
 *.css.map
 !.gitkeep
 .env
