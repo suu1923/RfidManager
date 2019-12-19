@@ -1,0 +1,52 @@
+<form id="add-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">省级行政区:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-name" data-rule="required"  data-source="rfid/rfid/getRfidRegParams?table=countries&key=c_id" data-primary-key="c_id" data-select-only="true"  class="form-control selectpage" name="list[c_id]" type="text" value="读取中......">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">产品名称:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-name" data-rule="required"  data-source="rfid/rfid/getRfidRegParams?table=productname&key=p_id" data-primary-key="p_id" data-select-only="true" class="form-control selectpage" name="list[p_id]" type="text" value="读取中......">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">产品规格(mm):</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-name" data-rule="required"  data-source="rfid/rfid/getRfidRegParams?table=specs&key=s_id" data-primary-key="s_id" data-select-only="true"  class="form-control selectpage" name="list[s_id]" type="text" value="读取中......">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">执行标准:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-name" data-rule="required"  data-source="rfid/rfid/getRfidRegParams?table=es&key=es" data-primary-key="es" data-select-only="true" class="form-control selectpage" name="list[es]" type="text" value="读取中......">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">产品批号:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-name" data-rule="required" data-date-format="YY-MM" data-date-use-current="true"
+ class="form-control datetimepicker" name="list[p_bnumer]" type="text" value="读取中......">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">产品流水号:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-name" data-rule="required,integer" class="form-control" maxlength="3" name="list[p_snumer]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">创建者编号（此账号）:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-create_user_id" data-rule="required" data-source="create/user/index" readonly class="form-control" name="list[u_id]" type="text" value="{$admin.nickname}">
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-12 col-sm-2"></label>
+        <div class="col-xs-12 col-sm-8">
+            <button type="submit" class="btn btn-success btn-embossed disabled">{:__('OK')}</button>
+            <button type="reset" class="btn btn-default btn-embossed">{:__('Reset')}</button>
+        </div>
+    </div>
+</form>
