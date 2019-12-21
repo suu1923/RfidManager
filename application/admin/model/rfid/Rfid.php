@@ -8,11 +8,6 @@ use think\Model;
 
 class Rfid extends Model
 {
-
-    
-
-    
-
     // 表名
     protected $name = 'rfid';
     
@@ -26,7 +21,8 @@ class Rfid extends Model
     protected $append = [
         'create_time_text',
         'update_time_text',
-        'delete_time_text'
+        'delete_time_text',
+        'write_time_text'
     ];
     
 
@@ -40,8 +36,14 @@ class Rfid extends Model
         return $username ? $username->username : "未知";
     }
 
-
-
+//    public function getIsWriteAttr($value){
+//        $status = [0=>"未写入",1=>"已写入"];
+//        return $status[$value];
+//    }
+//    public function getStatusAttr($value){
+//        $status = [0=>"正常",1=>"已过期",2=>"损坏",3=>"异常"];
+//        return $status[$value];
+//    }
     public function getCreateTimeTextAttr($value, $data)
     {
         $value = $value ? $value : (isset($data['create_time']) ? $data['create_time'] : '');
@@ -61,6 +63,11 @@ class Rfid extends Model
         $value = $value ? $value : (isset($data['delete_time']) ? $data['delete_time'] : '');
         return is_numeric($value) ? date("Y-m-d H:i:s", $value) : $value;
     }
+    public function getWriteTimeTextAttr($value, $data)
+    {
+        $value = $value ? $value : (isset($data['delete_time']) ? $data['delete_time'] : '');
+        return is_numeric($value) ? date("Y-m-d H:i:s", $value) : $value;
+    }
 
     protected function setCreateTimeAttr($value)
     {
@@ -76,6 +83,9 @@ class Rfid extends Model
     {
         return $value === '' ? null : ($value && !is_numeric($value) ? strtotime($value) : $value);
     }
-
+    protected function setWriteTimeAttr($value)
+    {
+        return $value === '' ? null : ($value && !is_numeric($value) ? strtotime($value) : $value);
+    }
 
 }

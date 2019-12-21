@@ -25,11 +25,13 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                     [
                         {field: 'id', title: __('Id')},
                         {field: 'r_id', title: __('R_id')},
-                        {field: 'create_time', title: __('Create_time')+"11", operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
                         {field: 'create_user_id', title: __('Create_user_id')},
+                        {field: 'is_write', title: __('Is_write'),formatter:Table.api.formatter.flag,custom:{'0':'danger',"1":'success'},searchList:{0:"未写入",1:"已写入"}},
+                        {field: 'write_time', title:__('Write_time'),operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
+                        {field: 'create_time', title: __('Create_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
                         {field: 'update_time', title: __('Update_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
                         {field: 'delete_time', title: __('Delete_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
-                        {field: 'status', title: __('Status')},
+                        {field: 'status', title: __('Status'),formatter:Table.api.formatter.flag,custom:{'0':'success',"1":'danger'},searchList:{0:"正常",1:"损坏"}},
                         {
                             field: 'operate',
                             title: __('Operate'),
@@ -37,21 +39,21 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                             events: Table.api.events.operate,
                             buttons:[
                                 {
-                                    name:"write",
-                                    title: __('Write'),
-                                    text: __('Write'),
+                                    name:"look",
+                                    title: __('Look'),
+                                    text: __('Look'),
                                     classname:  'btn btn-xs btn-success btn-magic btn-click',
-                                    // callback:function (data) {
-                                    //     // Layer.alert("接收到回传数据：" + JSON.stringify(data), {title: "回传数据"});
-                                    //     Toastr.success(JSON.stringify(data));
-                                    // },
-                                    url:"",
-                                    click:function (data) {
+                                    url:'rfid/rfid/getinfo?id='+$(this).parent().siblings(":first").text(),
+                                    hidden:function (row) {
+                                        // 如果已写入，隐藏掉
+                                        if (row.is_write === 1){
+                                            return true
+                                        }
+                                    },
+                                    click:function () {
                                         //  检查当前设备是否连接
-                                        // console.log(checkRfidConn())
                                         if (checkRfidConn() == true){
                                             // 联网查询
-                                            // console.log()
                                             $.ajax({
                                                 url: 'rfid/rfid/write?id='+$(this).parent().siblings(":first").text(),
                                                 type: 'post',
@@ -60,6 +62,33 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                                                 },
                                                 success:function (data) {
                                                     Layer.alert(data)
+                                                    table.bootstrapTable('refresh')
+                                                }
+                                            })
+                                        }else{
+                                            Layer.alert("未检测到设备，请检查是否安装读卡器驱动或是否连接读卡器");
+                                        }
+                                    }
+                                },
+                                {
+                                    name:"look",
+                                    title: __('Look'),
+                                    classname:  'btn btn-xs btn-info btn-magic',
+                                    icon: 'fa fa-info-circle',
+                                    url:'rfid/rfid/look',
+                                    click:function () {
+                                        //  检查当前设备是否连接
+                                        if (checkRfidConn() == true){
+                                            // 联网查询
+                                            $.ajax({
+                                                url: 'rfid/rfid/write?id='+$(this).parent().siblings(":first").text(),
+                                                type: 'post',
+                                                data: {
+                                                    "id":table.bootstrapTable('getSelections')
+                                                },
+                                                success:function (data) {
+                                                    Layer.alert(data)
+                                                    table.bootstrapTable('refresh')
                                                 }
                                             })
                                         }else{
@@ -85,6 +114,9 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
         edit: function () {
             Controller.api.bindevent();
         },
+        look:function () {
+            console.log("s")
+        },
         api: {
             bindevent: function () {
                 Form.api.bindevent($("form[role=form]"));
@@ -92,6 +124,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
         }
     };
 
+    // 检测硬件设备
     function checkRfidConn() {
         if ( 2 > 1 ){
             return true;

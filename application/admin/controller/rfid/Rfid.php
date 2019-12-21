@@ -44,12 +44,8 @@ class Rfid extends Backend
     public function add()
     {
         if ($this->request->isPost()) {
-
-
             $params = $this->request->post("list/a");
-
             if ($params['u_id'] == "Admin") $params["u_id"] = "01";
-
             // 防伪码
             $antiCode = "00";
             // 重组时间
@@ -68,7 +64,6 @@ class Rfid extends Backend
             // 流水号
             $com['six'] = $params['p_snumer'];
 
-
             $data['r_id'] = join("",$com).$antiCode;
             $data['is_write'] = 0;
             $data['create_user_id'] = session("admin.id");
@@ -83,13 +78,6 @@ class Rfid extends Backend
                 $result = false;
                 Db::startTrans();
                 try {
-                    //是否采用模型验证
-//                    if ($this->modelValidate) {
-//                        $name = str_replace("\\model\\", "\\validate\\", get_class($this->model));
-//                        $validate = is_bool($this->modelValidate) ? ($this->modelSceneValidate ? $name . '.add' : $name) : $this->modelValidate;
-//                        $this->model->validateFailException(true)->validate($validate);
-//                    }
-//                    dump($data);
                     $result = $this->model->allowField(true)->save($data);
                     Db::commit();
                 } catch (ValidateException $e) {
@@ -110,18 +98,43 @@ class Rfid extends Backend
             }
             $this->error(__('Parameter %s can not be empty', ''));
         }
-
         return $this->view->fetch();
     }
 
-
+    /**
+     * @throws DataNotFoundException
+     * @throws DbException
+     * @throws ModelNotFoundExceptions
+     * RFID写入
+     */
     public function write(){
         if ($this->request->isPost()){
-            dump($this->request->param());
+            $id = $this->request->param("id");
+            $this_model  = $this->model->find($id);
+            if ($this_model->getData("is_write") != 1){
+                $result = $this->model->save([
+                    'is_write' => 1,
+                    'write_time'=> time()
+                ],['id'=>$id]);
+                echo $result ? "写入成功" : "写入失败";
+            }else{
+                echo "请勿重复写入";
+            }
         }else{
             $this->error(__('Network error'));
         }
     }
+
+    /**
+     * RFID信息读取,包含所有记录
+     * @throws \think\Exception
+     */
+    public function look(){
+        $data = "123123";
+        $this->view->display("data",$data);
+        return $this->view->fetch();
+    }
+
 
     // 获取属性数据
     public function getRfidRegParams($table,$key){
