@@ -183,7 +183,6 @@ class Rfid extends Backend
             }
         }
         $id = $this->request->param("ids");
-        if (!$this->checkStatus($id)) return "该标签已经无法操作";
         if (!$this->checkIsWrite($id)) return "请先写入RFID再分配经销商";
         if ($this->checkIsAssign($id)) return "已经分配至经销商";
 

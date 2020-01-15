@@ -165,14 +165,21 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
         },
         write:function () {
         },
+        assign_to_dealer:function () {
+            Controller.api.bindevent();
+        },
         look:function () {
         },
         sub_edit_attr:function () {
-
+            Controller.api.bindevent();
         },
         api: {
             bindevent: function () {
                 Form.api.bindevent($("form[role=form]"));
+            },
+            sub_edit_attr:function () {
+                // Form.events.selectpage(form);
+                Form.api.bindevent($("form[role=edit_rfid_attr]"));
             }
         }
     };
