@@ -194,3 +194,67 @@ if (!function_exists('build_heading')) {
         return $result;
     }
 }
+
+
+
+/**
+ * @param $id
+ * 判断RFID是否损坏
+ */
+function getTrueId($id){
+    $result = Db::name("rfid")->where(["id"=>$id])->find();
+    return (substr($result['r_id'],-2) != "00") ? false : true;
+}
+
+
+function format($a,$b){
+    //检查两个日期大小，默认前小后大，如果前大后小则交换位置以保证前小后大
+    if(strtotime($a)>strtotime($b)) list($a,$b)=array($b,$a);
+    $start  = strtotime($a);
+    $stop   = strtotime($b);
+    $extend = ($stop-$start)/86400;
+    $result['extends'] = $extend;
+    if($extend<7){                //如果小于7天直接返回天数
+        $result['daily'] = $extend;
+    }elseif($extend<=31){        //小于28天则返回周数，由于闰年2月满足了
+        if($stop==strtotime($a.'+1 month')){
+            $result['monthly'] = 1;
+        }else{
+            $w = floor($extend/7);
+            $d = ($stop-strtotime($a.'+'.$w.' week'))/86400;
+            $result['weekly']  = $w;
+            $result['daily']   = $d;
+        }
+    }else{
+        $y=    floor($extend/365);
+        if($y>=1){                //如果超过一年
+            $start = strtotime($a.'+'.$y.'year');
+            $a     = date('Y-m-d',$start);
+            //判断是否真的已经有了一年了，如果没有的话就开减
+            if($start>$stop){
+                $a = date('Y-m-d',strtotime($a.'-1 month'));
+                $m =11;
+                $y--;
+            }
+            $extend = ($stop-strtotime($a))/86400;
+        }
+        if(isset($m)){
+            $w = floor($extend/7);
+            $d = $extend-$w*7;
+        }else{
+            $m = isset($m)?$m:round($extend/30);
+            $stop>=strtotime($a.'+'.$m.'month') ? $m : $m--;
+            if($stop>=strtotime($a.'+'.$m.'month')){
+                $d=$w=($stop-strtotime($a.'+'.$m.'month'))/86400;
+                $w = floor($w/7);
+                $d = $d-$w*7;
+            }
+        }
+        $result['yearly']  = $y;
+        $result['monthly'] = $m;
+        $result['weekly']  = $w;
+        $result['daily']   = isset($d)?$d:null;
+    }
+    return array_filter($result);
+}
+

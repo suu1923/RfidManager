@@ -23,17 +23,17 @@
 
         <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
-
+<!--
                 <li>
                     <a href="__PUBLIC__" target="_blank"><i class="fa fa-home" style="font-size:14px;"></i></a>
-                </li>
+                </li>-->
 
-                <!-- 账号信息下拉框 -->
+                <!-- 账号信息下拉框
                 <li class="hidden-xs">
                     <a href="javascript:;" data-toggle="checkupdate" title="{:__('Check for updates')}">
                         <i class="fa fa-refresh"></i>
                     </a>
-                </li>
+                </li> -->
 
                 <!-- 清除缓存 -->
                 <li>
@@ -49,7 +49,7 @@
                     </ul>
                 </li>
 
-                <!-- 多语言列表 -->
+                <!-- 多语言列表
                 {if $Think.config.lang_switch_on}
                 <li class="hidden-xs">
                     <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-language"></i></a>
@@ -62,7 +62,7 @@
                         </li>
                     </ul>
                 </li>
-                {/if}
+                {/if}-->
 
                 <!-- 全屏按钮 -->
                 <li class="hidden-xs">
@@ -73,7 +73,7 @@
                 <li class="dropdown user user-menu">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <img src="{$admin.avatar|cdnurl|htmlentities}" class="user-image" alt="{$admin.nickname|htmlentities}">
-                        <span class="hidden-xs">{$admin.nickname|htmlentities}</span>
+                        <span class="hidden-xs">{$admin.username|htmlentities}</span>
                     </a>
                     <ul class="dropdown-menu">
                         <!-- User image -->
@@ -81,24 +81,11 @@
                             <img src="{$admin.avatar|cdnurl|htmlentities}" class="img-circle" alt="">
 
                             <p>
-                                {$admin.nickname|htmlentities}
+                                {$admin.username|htmlentities}
                                 <small>{$admin.logintime|date="Y-m-d H:i:s",###}</small>
                             </p>
                         </li>
                         <!-- Menu Body -->
-                        <li class="user-body">
-                            <div class="row">
-                                <div class="col-xs-4 text-center">
-                                    <a href="https://www.fastadmin.net" target="_blank">{:__('FastAdmin')}</a>
-                                </div>
-                                <div class="col-xs-4 text-center">
-                                    <a href="https://forum.fastadmin.net" target="_blank">{:__('Forum')}</a>
-                                </div>
-                                <div class="col-xs-4 text-center">
-                                    <a href="https://doc.fastadmin.net" target="_blank">{:__('Docs')}</a>
-                                </div>
-                            </div>
-                        </li>
                         <!-- Menu Footer-->
                         <li class="user-footer">
                             <div class="pull-left">
@@ -111,10 +98,6 @@
                             </div>
                         </li>
                     </ul>
-                </li>
-                <!-- 控制栏切换按钮 -->
-                <li class="hidden-xs">
-                    <a href="javascript:;" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
                 </li>
             </ul>
         </div>

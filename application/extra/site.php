@@ -1,7 +1,7 @@
 <?php
 
 return array (
-  'name' => 'FastAdmin',
+  'name' => 'A Sysytem',
   'beian' => '',
   'cdnurl' => '',
   'version' => '1.0.1',

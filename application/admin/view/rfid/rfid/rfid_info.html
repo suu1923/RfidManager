@@ -1,0 +1,109 @@
+<style type="text/css">
+table{
+text-align: left;
+}
+</style>
+<table class="table table-striped" >
+    <thead>
+    <tr>
+        <th width="30%"></th>
+        <th width="70%"></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>{:__('R_id')}</td>
+        <td>{$baseInfo.r_id}</td>
+    </tr>
+    <tr>
+        <td>{:__('Countrie_id')}</td>
+        <td>{$baseInfo.rfid_attr_countries_id}</td>
+    </tr>
+    <tr>
+        <td>{:__('Es_id')}</td>
+        <td>{$baseInfo.rfid_attr_es_id}</td>
+    </tr>
+    <tr>
+        <td>{:__('Project_name_id')}</td>
+        <td>{$baseInfo.rfid_attr_productname_id}</td>
+    </tr>
+    <tr>
+        <td>{:__('Specs_id')}</td>
+        <td>{$baseInfo.rfid_attr_specs_id}mm</td>
+    </tr>
+    <tr>
+        <td>{:__('Create_user_id')}</td>
+        <td>{$baseInfo.create_user_id}</td>
+    </tr>
+    <tr>
+        <td>{:__('Create_time')}</td>
+        <td>{$baseInfo.create_time}</td>
+    </tr>
+    {if condition="$baseInfo.is_write == 1"}
+        <tr>
+            <td>{:__('Is_write')}</td>
+            <td><span class="label label-success">{:__('Y_write')}</span></td>
+        </tr>
+        <tr>
+            <td>{:__('Write_time')}:</td>
+            <td>{$baseInfo.write_time|date='Y-m-d H:i:s',###}</td>
+        </tr>
+    {else /}
+        <tr>
+            <td>{:__('Is_write')}</td>
+            <td><span class="label label-danger">{:__('N_write')}</span></td>
+        </tr>
+    {/if}
+    {if condition="$baseInfo.is_to_dealer == 1"}
+        <tr>
+            <td>{:__('Is_to_Dealer')}</td>
+            <td><span class="label label-success">{:__('Y_distribution')}</span></td>
+        </tr>
+        <tr>
+            <td>{:__('To_dealer_time')}:</td>
+            <td>{$operation.to_dealer.create_time}</td>
+        </tr>
+    {else /}
+        <tr>
+            <td>{:__('Is_to_Dealer')}</td>
+            <td><span class="label label-danger">{:__('N_distribution')}</span></td>
+        </tr>
+    {/if}
+
+    {if condition="$baseInfo.is_to_user == 1"}
+        <tr>
+            <td>{:__('Is_to_User')}</td>
+            <td><span class="label label-success">{:__('Y_distribution')}</span></td>
+        </tr>
+        <tr>
+            <td>{:__('To_user_time')}</td>
+            <td>{$operation.to_user.create_time}</td>
+        </tr>
+        <tr>
+            <td>{:__('User_info')}</td>
+            <td>
+                <p>{:__('User_name')} : {$operation.to_user.user_name}</p>
+                <p>{:__('User_idcard')} : {$operation.to_user.idcard}</p>
+
+            </td>
+        </tr>
+    {else /}
+        <tr>
+            <td>{:__('Is_to_User')}</td>
+            <td><span class="label label-danger">{:__('N_distribution')}</span></td>
+        </tr>
+    {/if}
+    <tr>
+        <td>{:__('Status')}</td>
+        {if condition="getTrueId($baseInfo.id) eq true"}
+            <td><span class="label label-success">{:__('Normal')}</span></td>
+        {else /}
+            <td><span class="label label-danger">{:__('Damage')}</span></td>
+        {/if}
+    </tr>
+    <tr>
+        <td>{:__('Operation_record')}:</td>
+        <td>待添加</td>
+    </tr>
+    </tbody>
+</table>

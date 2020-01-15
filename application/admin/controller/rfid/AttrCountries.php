@@ -32,6 +32,35 @@ class AttrCountries extends Backend
         $this->model = new \app\admin\model\rfid\AttrCountries;
     }
 
+    public function index2()
+    {
+        $this->relationSearch = false;
+        //设置过滤方法
+        $this->request->filter(['strip_tags']);
+            //如果发送的来源是Selectpage，则转发到Selectpage
+            if ($this->request->request('keyField')) {
+                return $this->selectpage();
+            }
+            list($where, $sort, $order, $offset, $limit) = $this->buildparams();
+            $total = $this->model
+                ->where($where)
+                ->order($sort, $order)
+                ->count();
+
+            $list = $this->model
+                ->where($where)
+                ->order($sort, $order)
+                ->limit($offset, $limit)
+                ->select();
+            foreach ($list as $row){
+                $row->visible(['c_id','name']);
+            }
+
+            $list = collection($list)->toArray();
+            $result = array("total" => $total, "rows" => $list);
+
+            return json($result);
+    }
 
     /**
      * 默认生成的控制器所继承的父类中有index/add/edit/del/multi五个基础方法、destroy/restore/recyclebin三个回收站方法
