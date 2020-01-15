@@ -1,0 +1,60 @@
+<form id="edit_rfid_attr" class="form-horizontal" role="edit_rfid_attr" data-toggle="validator" method="POST" action="">
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Countrie_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <select id="c-rfid_attr_countries_id" class="form-control selectpage">
+                {volist name="$info['countries']" id="item"}
+                <option  name="{$item.c_id}" value="{$item.name}" {in name="$row.rfid_attr_countries_id" value="$item.name"}selected="selected"{/in}>{$item.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Es_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <select id="c-rfid_attr_es_id" class="form-control selectpage">
+                {volist name="$info['es']" id="item"}
+                <option  name="{$item.es}" value="{$item.name}" {in name="$row.rfid_attr_es_id" value="$item.name"}selected="selected"{/in}>{$item.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Project_name_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <select id="c-rfid_attr_countries_id" class="form-control selectpage">
+                {volist name="$info['product_name']" id="item"}
+                <option  name="{$item.p_id}" value="{$item.name}" {in name="$row.rfid_attr_productname_id" value="$item.name"}selected="selected"{/in}>{$item.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Specs_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <select id="c-rfid_attr_countries_id" class="form-control selectpage">
+                {volist name="$info['specs']" id="item"}
+                <option  name="{$item.s_id}" value="{$item.name}" {in name="$row.rfid_attr_specs_id" value="$item.name"}selected="selected"{/in}>{$item.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Batch_number')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-batch_number" data-rule="required" class="form-control datetimepicker" name="row[batch_number]" type="text" value="{$row.batch_number|htmlentities}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Serial_number')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-serial_number" data-rule="required" class="form-control" name="row[serial_number]" type="text" value="{$row.serial_number|htmlentities}">
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-12 col-sm-2"></label>
+        <div class="col-xs-12 col-sm-8">
+            <button type="submit" class="btn btn-success btn-embossed">{:__('OK')}</button>
+        </div>
+    </div>
+</form>
