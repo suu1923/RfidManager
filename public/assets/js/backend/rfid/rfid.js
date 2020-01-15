@@ -51,11 +51,11 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                             events: Table.api.events.operate,
                             buttons:[
                                 {
-                                    name:"sub_edit_attr",
+                                    name:"submit_revision_attr",
                                     title:__('Sub_Edit_Attr'),
                                     classname:  'btn btn-xs btn-danger btn-dialog',
                                     text: __('Sub_Edit_Attr'),
-                                    icon:'fa fa-list',
+                                    // icon:'fa fa-list',
                                     url:'rfid/rfid/submit_revision_attr',
                                     callback: function (data) {
                                         Layer.alert("接收到回传数据：" + JSON.stringify(data), {title: "回传数据"});
@@ -170,7 +170,8 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
         },
         look:function () {
         },
-        sub_edit_attr:function () {
+        submit_revision_attr:function () {
+            // Form.bindevent();
             Controller.api.bindevent();
         },
         api: {

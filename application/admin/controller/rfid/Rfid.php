@@ -357,34 +357,35 @@ class Rfid extends Backend
         }
         if ($this->request->isPost()) {
             $params = $this->request->post("row/a");
+
             if ($params) {
                 $params = $this->preExcludeFields($params);
-                $result = false;
-                Db::startTrans();
-                try {
-                    //是否采用模型验证
-                    if ($this->modelValidate) {
-                        $name = str_replace("\\model\\", "\\validate\\", get_class($this->model));
-                        $validate = is_bool($this->modelValidate) ? ($this->modelSceneValidate ? $name . '.edit' : $name) : $this->modelValidate;
-                        $row->validateFailException(true)->validate($validate);
-                    }
-                    $result = $row->allowField(true)->save($params);
-                    Db::commit();
-                } catch (ValidateException $e) {
-                    Db::rollback();
-                    $this->error($e->getMessage());
-                } catch (PDOException $e) {
-                    Db::rollback();
-                    $this->error($e->getMessage());
-                } catch (Exception $e) {
-                    Db::rollback();
-                    $this->error($e->getMessage());
-                }
-                if ($result !== false) {
-                    $this->success();
-                } else {
-                    $this->error(__('No rows were updated'));
-                }
+                dump($params);
+//                Db::startTrans();
+//                try {
+//                    //是否采用模型验证
+//                    if ($this->modelValidate) {
+//                        $name = str_replace("\\model\\", "\\validate\\", get_class($this->model));
+//                        $validate = is_bool($this->modelValidate) ? ($this->modelSceneValidate ? $name . '.edit' : $name) : $this->modelValidate;
+//                        $row->validateFailException(true)->validate($validate);
+//                    }
+//                    $result = $row->allowField(true)->save($params);
+//                    Db::commit();
+//                } catch (ValidateException $e) {
+//                    Db::rollback();
+//                    $this->error($e->getMessage());
+//                } catch (PDOException $e) {
+//                    Db::rollback();
+//                    $this->error($e->getMessage());
+//                } catch (Exception $e) {
+//                    Db::rollback();
+//                    $this->error($e->getMessage());
+//                }
+//                if ($result !== false) {
+//                    $this->success();
+//                } else {
+//                    $this->error(__('No rows were updated'));
+//                }
             }
             $this->error(__('Parameter %s can not be empty', ''));
         }
@@ -394,7 +395,7 @@ class Rfid extends Backend
         $info['specs'] = \app\admin\model\rfid\AttrSpecs::all();
         $info['product_name'] = \app\admin\model\rfid\AttrProductName::all();
         $this->view->assign("info",$info);
-        $this->view->assign("row", $row);
+        $this->view->assign("row", $row->getData());
         return $this->view->fetch('edit_rfid_attr');
     }
 
@@ -443,5 +444,14 @@ class Rfid extends Backend
         }else{
             $this->error(__('Network error'));
         }
+    }
+
+    /**
+     * 生成RFID编号所需数组
+     * @param $param
+     * @return array
+     */
+    private function generateRfidParam($param){
+        $result = array();
     }
 }
