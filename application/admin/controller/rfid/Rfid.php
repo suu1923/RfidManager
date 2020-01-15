@@ -128,11 +128,12 @@ class Rfid extends Backend
         }
         return $this->view->fetch();
     }
+
     /**
+     * RFID写入
      * @throws DataNotFoundException
      * @throws DbException
      * @throws ModelNotFoundExceptions
-     * RFID写入
      */
     public function write(){
         if ($this->request->isPost()){
@@ -152,7 +153,6 @@ class Rfid extends Backend
             $this->error(__('Network error'));
         }
     }
-
 
     /**
      * 分配至经销商
@@ -206,6 +206,7 @@ class Rfid extends Backend
             ->select();
         return json(['list'=>$data ? $data : ["暂无"],'total'=>count($data)]);
     }
+
     /**
      * 经销商分配至用户
      * @throws DbException
@@ -336,6 +337,7 @@ class Rfid extends Backend
     private function checkStatus($id){
         $result = \app\admin\model\rfid\Rfid::get($id);
         if ($result['status'] != 0 ) return false;
+        return true;
     }
 
     /**

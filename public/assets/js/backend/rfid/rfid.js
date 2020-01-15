@@ -176,10 +176,6 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
         api: {
             bindevent: function () {
                 Form.api.bindevent($("form[role=form]"));
-            },
-            sub_edit_attr:function () {
-                // Form.events.selectpage(form);
-                Form.api.bindevent($("form[role=edit_rfid_attr]"));
             }
         }
     };
