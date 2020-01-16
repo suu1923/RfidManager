@@ -15,7 +15,7 @@ use think\Validate;
 class Index extends Backend
 {
 
-    protected $noNeedLogin = ['login'];
+    protected $noNeedLogin = ['login','register'];
     protected $noNeedRight = ['index', 'logout'];
     protected $layout = '';
 
@@ -117,6 +117,22 @@ class Index extends Backend
         $this->auth->logout();
         Hook::listen("admin_logout_after", $this->request);
         $this->success(__('Logout successful'), 'index/login');
+    }
+
+    /**
+     * 注册
+     */
+    public function register(){
+        $url = $this->request->get('url', 'index/register');
+        if ($this->request->isPost()){
+
+        }
+        $background = Config::get('fastadmin.login_background');
+        $background = stripos($background, 'http') === 0 ? $background : config('site.cdnurl') . $background;
+        $this->view->assign('background', $background);
+        $this->view->assign('title', __('Register'));
+        return $this->view->fetch();
+
     }
 
 }

@@ -54,4 +54,10 @@ return [
     'Forum'                                                      => '交流社区',
     'QQ qun'                                                     => 'QQ交流群',
     'Captcha'                                                    => '验证码',
+    'Register'                                                   => '立即申请',
+    'Forget Password'                                            => '忘记密码？',
+    'Email'                                                      => '邮箱账号',
+    'Role'                                                       => '角色',
+    'Company Name'                                               => '公司名字',
+    'Please Fill in information'                                 => '请填写资料',
 ];

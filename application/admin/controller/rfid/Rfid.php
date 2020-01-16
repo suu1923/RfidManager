@@ -41,6 +41,7 @@ class Rfid extends Backend
             if ($this->request->request('keyField')) {
                 return $this->selectpage();
             }
+            // 获取角色
             list($where, $sort, $order, $offset, $limit) = $this->buildparams();
             $total = $this->model
                 ->where($where)

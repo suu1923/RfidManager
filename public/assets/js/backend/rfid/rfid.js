@@ -7,9 +7,9 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                 extend: {
                     index_url: 'rfid/rfid/index' + location.search,
                     add_url: 'rfid/rfid/add',
-                    edit_url: 'rfid/rfid/edit',
-                    del_url: 'rfid/rfid/del',
-                    multi_url: 'rfid/rfid/multi',
+                    // edit_url: 'rfid/rfid/edit',
+                    // del_url: 'rfid/rfid/del',
+                    // multi_url: 'rfid/rfid/multi',
                     table: 'rfid',
                 }
             });
