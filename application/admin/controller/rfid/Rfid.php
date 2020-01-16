@@ -8,6 +8,7 @@ use app\common\controller\Backend;
 use think\Db;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\ModelNotFoundException;
+use think\Exception;
 use think\exception\DbException;
 
 /**
@@ -70,24 +71,9 @@ class Rfid extends Backend
         if ($this->request->isPost()) {
             $params = $this->request->post("row/a");
             if ($params['create_user_id'] == "Admin") $params["create_user_id"] = "01";
-            // 防伪码
-//            $antiCode = "00";
+
             $params['batch_number'] = str_replace("-","",$params['batch_number']);
-            // 组成部分            // 顺序
-            // 省级+当前企业编号
-            $com['one'] = $params['rfid_attr_countries_id'] . $params['create_user_id'];
-            // 产品名称
-            $com['two'] = $params['rfid_attr_productname_id'];
-            // 产品规格
-            $com['three'] = $params['rfid_attr_specs_id'];
-            // 执行标准+流水号
-            $com['four'] = $params['rfid_attr_es_id'] != "00" ? $params['rfid_attr_es_id']."00" :  $params['rfid_attr_es_id'].$params['serial_number'];
-            // 产品批号（年月）
-            $com['five'] = $params['batch_number'];
-            // 流水号
-            $com['six'] = $params['serial_number'];
-//            $params['r_id'] = join("",$com).$antiCode;
-            $params['r_id'] = join("",$com);
+            $params['r_id'] = $this->generateRfidParam($params);
             $params['is_write'] = 0;
             $params['create_user_id'] = session("admin.id");
 
@@ -183,8 +169,8 @@ class Rfid extends Backend
             }
         }
         $id = $this->request->param("ids");
-        if (!$this->checkIsWrite($id)) return "请先写入RFID再分配经销商";
-        if ($this->checkIsAssign($id)) return "已经分配至经销商";
+        if (!$this->checkIsWrite($id)) return $this->view->fetch("tips",['tips'=>'请先写入RFID再分配经销商']);
+        if ($this->checkIsAssign($id)) return $this->view->fetch("tips",['tips'=>'您当前已分配经销商']);
 
         return $this->view->fetch('dealer_choose');
     }
@@ -344,10 +330,14 @@ class Rfid extends Backend
      * 提交修改基本属性
      * @param $id
      */
-    public function submit_revision_attr($ids = null){
-        $row = $this->model->get($ids);
+    public function submit_revision_attr($ids = null,$type=""){
+        $row = $this->model->where(["id"=>$ids])->column("id,rfid_attr_countries_id,rfid_attr_es_id,rfid_attr_productname_id,rfid_attr_specs_id,batch_number,serial_number")[$ids];
         if (!$row) {
             $this->error(__('No Results were found'));
+        }
+        foreach ($row as $key => &$value){
+            if ($key == "id") continue;
+            $value = (string)sprintf("%02d",$value);
         }
         $adminIds = $this->getDataLimitAdminIds();
         if (is_array($adminIds)) {
@@ -357,45 +347,48 @@ class Rfid extends Backend
         }
         if ($this->request->isPost()) {
             $params = $this->request->post("row/a");
-
             if ($params) {
                 $params = $this->preExcludeFields($params);
-                dump($params);
-//                Db::startTrans();
-//                try {
-//                    //是否采用模型验证
-//                    if ($this->modelValidate) {
-//                        $name = str_replace("\\model\\", "\\validate\\", get_class($this->model));
-//                        $validate = is_bool($this->modelValidate) ? ($this->modelSceneValidate ? $name . '.edit' : $name) : $this->modelValidate;
-//                        $row->validateFailException(true)->validate($validate);
-//                    }
-//                    $result = $row->allowField(true)->save($params);
-//                    Db::commit();
-//                } catch (ValidateException $e) {
-//                    Db::rollback();
-//                    $this->error($e->getMessage());
-//                } catch (PDOException $e) {
-//                    Db::rollback();
-//                    $this->error($e->getMessage());
-//                } catch (Exception $e) {
-//                    Db::rollback();
-//                    $this->error($e->getMessage());
-//                }
-//                if ($result !== false) {
-//                    $this->success();
-//                } else {
-//                    $this->error(__('No rows were updated'));
-//                }
+                $params['batch_number'] = str_replace("-","",$params['batch_number']);
+                $data['type'] = $params['type'];
+                $data['reason'] = $params['reason'];
+                unset($params['type'],$params['reason']);
+                $diff = array_diff_assoc($params,$row);
+                if (!$diff){ $this->error("未做任何处理");}
+                // 新旧数据处理
+                foreach ($diff as $key => &$value){
+                    // data: after => before
+                    $value = $row[$key]."=>".$value;
+                }
+                $data['attr'] = json_encode($diff);
+                $data['submission_id'] = $this->auth->id;
+                $data['r_id'] = $ids;
+                // 添加记录
+                // 先修改上一个状态为1,再添加新的记录
+                Db::startTrans();
+                try{
+                    $result1 = \app\admin\model\rfid\Revise::update(["status"=>1],['r_id'=>$ids,'submission_id'=>$this->auth->id,'option'=>0]);
+                    $result2 = \app\admin\model\rfid\Revise::create($data);
+                    Db::commit();
+                }catch (Exception $e){
+                    Db::rollback();
+                    $this->error($e->getMessage());
+                }
+
+                if ($result1 && $result2) {
+                    $this->success();
+                }else{
+                    $this->error("提交失败");
+                }
             }
             $this->error(__('Parameter %s can not be empty', ''));
         }
-//        $info['countries'] = \app\admin\model\rfid\AttrCountries::all();
         $info['countries'] = Db::name('rfid_attr_countries')->field('c_id,name')->select();
         $info['es'] = \app\admin\model\rfid\AttrEs::all();
         $info['specs'] = \app\admin\model\rfid\AttrSpecs::all();
         $info['product_name'] = \app\admin\model\rfid\AttrProductName::all();
         $this->view->assign("info",$info);
-        $this->view->assign("row", $row->getData());
+        $this->view->assign("row", $row);
         return $this->view->fetch('edit_rfid_attr');
     }
 
@@ -451,7 +444,35 @@ class Rfid extends Backend
      * @param $param
      * @return array
      */
-    private function generateRfidParam($param){
+    private function generateRfidParam($params){
         $result = array();
+        // 组成部分            // 顺序
+        // 省级+当前企业编号
+        $result['provice'] = $params['rfid_attr_countries_id'] . $params['create_user_id'];
+        // 产品名称
+        $result['paoductname'] = $params['rfid_attr_productname_id'];
+        // 产品规格
+        $result['specs'] = $params['rfid_attr_specs_id'];
+        // 执行标准+流水号
+        $result['es'] = $params['rfid_attr_es_id'] != "00" ? $params['rfid_attr_es_id']."00" :  $params['rfid_attr_es_id'].$params['serial_number'];
+        // 产品批号（年月）
+        $result['batch'] = $params['batch_number'];
+        // 流水号
+        $result['serial'] = $params['serial_number'];
+        return join("",$result);
+    }
+
+    /**
+     * 检查用户是否提交过申请
+     */
+    public function check_has_apply(){
+        if ($this->request->isPost()){
+            $result = \app\admin\model\rfid\Revise::get(['r_id'=>$this->request->param("ids"),'submission_id'=>$this->auth->id,"option"=>0,"status"=>0]);
+            return !$result || $result == NULL
+                ? json(["status"=>0,"msg"=>"提交后可在我的申请中查看，审批通过后系统自动更改该RFID相关关联数据，并在通知中告知您结果！"])
+                : json(["status"=>1,"msg"=>"您当前已有一个申请正在审核中，再次提交会覆盖掉当前待审核的数据，是否确定？"]);
+        }else{
+            $this->error(__('Network error'));
+        }
     }
 }

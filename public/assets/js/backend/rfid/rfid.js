@@ -1,4 +1,4 @@
-define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefined, Backend, Table, Form) {
+define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($, undefined, Backend, Table, Form,Layer) {
 
     var Controller = {
         index: function () {
@@ -77,6 +77,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                                         //  检查当前设备是否连接
                                         if (checkRfidConn() == true){
                                             // 联网查询
+                                            // 这里需要怎么处理
                                             $.ajax({
                                                 url: 'rfid/rfid/write?id='+$(this).parent().siblings(":first").text(),
                                                 type: 'post',
@@ -173,6 +174,30 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
         submit_revision_attr:function () {
             // Form.bindevent();
             Controller.api.bindevent();
+
+            Form.api.bindevent($("form[role=form]"),function() {
+                // Toastr.success("获取数据成功");
+
+            },function () {
+
+            },function (success,error) {
+                $.ajax({
+                    type:"POST",
+                    url: "rfid/rfid/check_has_apply?ids="+this.attr("ids"),
+                    success:function (data) {
+                        Layer.confirm(data.msg,{btn:['确认','取消'],title:"提示"},function (index) {
+                            Form.api.submit($("form[role=form]"),function (data) {
+                                Layer.close(index);
+                            },function (error) {
+                                Layer.close(index);
+                            });
+                        });
+                    }
+                });
+
+                return false;
+            });
+
         },
         api: {
             bindevent: function () {

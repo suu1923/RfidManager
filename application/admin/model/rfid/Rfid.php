@@ -27,10 +27,10 @@ class Rfid extends Model
 
 
     // 去掉最后两位防伪码
-    public function getRIdAttr($value){
-        return $value;
-//        return mb_substr($value,0,mb_strlen($value)-2);
-    }
+//    public function getRIdAttr($value){
+//        return $value;
+////        return mb_substr($value,0,mb_strlen($value)-2);
+//    }
 
     public function getRfidAttrCountriesIdAttr($value){
         $value = (string)sprintf("%02d",$value);
