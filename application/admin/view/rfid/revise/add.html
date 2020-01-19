@@ -1,0 +1,124 @@
+<form id="add-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('R_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-r_id" data-rule="required" data-source="r/index" class="form-control selectpage" name="row[r_id]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Submission_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-submission_id" data-rule="required" data-source="submission/index" class="form-control selectpage" name="row[submission_id]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Auditor_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-auditor_id" data-rule="required" data-source="auditor/index" class="form-control selectpage" name="row[auditor_id]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Sub_reason')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-sub_reason" class="form-control" name="row[sub_reason]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Type')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-type" data-rule="required" class="form-control" name="row[type]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Before_attr')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-before_attr" data-rule="required" class="form-control" name="row[before_attr]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('After_attr')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-after_attr" data-rule="required" class="form-control" name="row[after_attr]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Success')}:</label>
+        <div class="col-xs-12 col-sm-8">
+                        
+            <select  id="c-success" data-rule="required" class="form-control selectpicker" name="row[success]">
+                {foreach name="successList" item="vo"}
+                    <option value="{$key}" {in name="key" value=""}selected{/in}>{$vo}</option>
+                {/foreach}
+            </select>
+
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Notice_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-notice_id" data-rule="required" data-source="notice/index" class="form-control selectpage" name="row[notice_id]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Reject_reason')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-reject_reason" class="form-control" name="row[reject_reason]" type="text">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Option')}:</label>
+        <div class="col-xs-12 col-sm-8">
+                        
+            <select  id="c-option" data-rule="required" class="form-control selectpicker" name="row[option]">
+                {foreach name="optionList" item="vo"}
+                    <option value="{$key}" {in name="key" value="0"}selected{/in}>{$vo}</option>
+                {/foreach}
+            </select>
+
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Read')}:</label>
+        <div class="col-xs-12 col-sm-8">
+                        
+            <select  id="c-read" data-rule="required" class="form-control selectpicker" name="row[read]">
+                {foreach name="readList" item="vo"}
+                    <option value="{$key}" {in name="key" value="0"}selected{/in}>{$vo}</option>
+                {/foreach}
+            </select>
+
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Create_time')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-create_time" class="form-control datetimepicker" data-date-format="YYYY-MM-DD HH:mm:ss" data-use-current="true" name="row[create_time]" type="text" value="{:date('Y-m-d H:i:s')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Option_time')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-option_time" class="form-control datetimepicker" data-date-format="YYYY-MM-DD HH:mm:ss" data-use-current="true" name="row[option_time]" type="text" value="{:date('Y-m-d H:i:s')}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Status')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            
+            <div class="radio">
+            {foreach name="statusList" item="vo"}
+            <label for="row[status]-{$key}"><input id="row[status]-{$key}" name="row[status]" type="radio" value="{$key}" {in name="key" value="0"}checked{/in} /> {$vo}</label> 
+            {/foreach}
+            </div>
+
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-12 col-sm-2"></label>
+        <div class="col-xs-12 col-sm-8">
+            <button type="submit" class="btn btn-success btn-embossed disabled">{:__('OK')}</button>
+            <button type="reset" class="btn btn-default btn-embossed">{:__('Reset')}</button>
+        </div>
+    </div>
+</form>
