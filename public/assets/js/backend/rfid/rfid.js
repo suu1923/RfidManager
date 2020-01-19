@@ -27,7 +27,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                 columns: [
                     [
                         {field: 'id', title: __('Id')},
-                        {field: 'r_id', title: __('R_id')},
+                        {field: 'rfid_id', title: __('R_id')},
                         {field: 'create_user_id', title: __('Create_user_id')},
                         {field: 'create_time', title: __('Create_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
                         {field: 'is_write', title: __('Is_write'),formatter:Table.api.formatter.flag,custom:{'0':'danger',"1":'success'},searchList:{0:"未写入",1:"已写入"}},

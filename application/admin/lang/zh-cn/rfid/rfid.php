@@ -40,7 +40,7 @@ return [
     'Recovery'       => '回收',
     'App_for_sub'    => '提交申请',
     'Sub_Edit_Attr'  => '重订属性',
-    'Reason'         => '原因'
-
+    'Reason'         => '原因',
+    'Error_RFID'     => '错误',
 
 ];

@@ -33,4 +33,12 @@ class Admin extends Model
         return $encrypt($password . $salt);
     }
 
+    /**
+     * 根据ID获取名字
+     * @param $id
+     */
+    public static function getAdminNameByID($id){
+        return (new Admin)->where(['id'=>$id])->column("username");
+    }
+
 }

@@ -363,12 +363,12 @@ class Rfid extends Backend
                 }
                 $data['attr'] = json_encode($diff);
                 $data['submission_id'] = $this->auth->id;
-                $data['r_id'] = $ids;
+                $data['rfid_id'] = $ids;
                 // 添加记录
                 // 先修改上一个状态为1,再添加新的记录
                 Db::startTrans();
                 try{
-                    $result1 = \app\admin\model\rfid\Revise::update(["status"=>1],['r_id'=>$ids,'submission_id'=>$this->auth->id,'option'=>0]);
+                    $result1 = \app\admin\model\rfid\Revise::update(["status"=>1],['rfid_id'=>$ids,'submission_id'=>$this->auth->id,'option'=>0]);
                     $result2 = \app\admin\model\rfid\Revise::create($data);
                     Db::commit();
                 }catch (Exception $e){
@@ -445,7 +445,7 @@ class Rfid extends Backend
      * @param $param
      * @return array
      */
-    private function generateRfidParam($params){
+    public function generateRfidParam($params){
         $result = array();
         // 组成部分            // 顺序
         // 省级+当前企业编号
@@ -468,7 +468,7 @@ class Rfid extends Backend
      */
     public function check_has_apply(){
         if ($this->request->isPost()){
-            $result = \app\admin\model\rfid\Revise::get(['r_id'=>$this->request->param("ids"),'submission_id'=>$this->auth->id,"option"=>0,"status"=>0]);
+            $result = \app\admin\model\rfid\Revise::get(['rfid_id'=>$this->request->param("ids"),'submission_id'=>$this->auth->id,"option"=>0,"status"=>0]);
             return !$result || $result == NULL
                 ? json(["status"=>0,"msg"=>"提交后可在我的申请中查看，审批通过后系统自动更改该RFID相关关联数据，并在通知中告知您结果！"])
                 : json(["status"=>1,"msg"=>"您当前已有一个申请正在审核中，再次提交会覆盖掉当前待审核的数据，是否确定？"]);
