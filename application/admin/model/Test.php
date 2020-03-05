@@ -13,7 +13,7 @@ class Test extends Model
     
 
     // 表名
-    protected $name = 'test';
+    protected $name = 'admin_reg';
     
     // 自动写入时间戳字段
     protected $autoWriteTimestamp = 'int';

@@ -7,9 +7,6 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                 extend: {
                     index_url: 'rfid/rfid/index' + location.search,
                     add_url: 'rfid/rfid/add',
-                    // edit_url: 'rfid/rfid/edit',
-                    // del_url: 'rfid/rfid/del',
-                    // multi_url: 'rfid/rfid/multi',
                     table: 'rfid',
                 }
             });
@@ -23,27 +20,17 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                 sortName: 'id',
                 dblClickToEdit: false,
                 search:false,
-                searchFormVisible:false,// 最后开放开
+                searchFormVisible:true,// 最后开放开
                 columns: [
                     [
                         {field: 'id', title: __('Id')},
-                        {field: 'rfid_id', title: __('R_id')},
-                        {field: 'create_user_id', title: __('Create_user_id')},
+                        {field: 'r_id', title: __('R_id')},
+                        {field: 'create_user_id', title: __('Create_user_id'),},
                         {field: 'create_time', title: __('Create_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
                         {field: 'is_write', title: __('Is_write'),formatter:Table.api.formatter.flag,custom:{'0':'danger',"1":'success'},searchList:{0:"未写入",1:"已写入"}},
                         {field: 'is_to_dealer', title: __('Is_to_dealer'),formatter:Table.api.formatter.flag,custom:{'0':'danger',"1":'success'},searchList:{0:"未分配",1:"已分配"}},
-                        // {field: 'dealer_id', title: __('Dealer_id')},
                         {field: 'is_to_user', title: __('Is_to_user'),formatter:Table.api.formatter.flag,custom:{'0':'danger',"1":'success'},searchList:{0:"未分配",1:"已分配"}},
-                        //{field: 'update_time', title: __('Update_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
-                        // {field: 'delete_time', title: __('Delete_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
-                        // {field: 'write_time', title: __('Write_time'), operate:'RANGE', addclass:'datetimerange', formatter: Table.api.formatter.datetime},
-                        {field: 'status', title: __('Status'),formatter:Table.api.formatter.flag,custom:{'0':'success',"1":'danger'},searchList:{0:"正常",1:"已回收",9:"待回收"}},
-                        // {field: 'rfid_attr_countries_id', title: __('Rfid_attr_countries_id')},
-                        // {field: 'rfid_attr_es_id', title: __('Rfid_attr_es_id')},
-                        // {field: 'rfid_attr_productname_id', title: __('Rfid_attr_productname_id')},
-                        // {field: 'rfid_attr_specs_id', title: __('Rfid_attr_specs_id')},
-                        // {field: 'batch_number', title: __('Batch_number')},
-                        // {field: 'serial_number', title: __('Serial_number')},
+                        {field: 'status', title: __('Status'),formatter:Table.api.formatter.flag,custom:{'0':'success',"1":'danger',"9":'warning',"10":"primary"},searchList:{0:"正常",1:"损坏",9:"待回收",10:"已回收"}},
                         {
                             field: 'operate',
                             title: __('Operate'),
@@ -73,25 +60,34 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                                             return true;
                                         }
                                     },
+                                    // confirm:"请复制"
                                     click:function () {
                                         //  检查当前设备是否连接
-                                        if (checkRfidConn() == true){
-                                            // 联网查询
-                                            // 这里需要怎么处理
-                                            $.ajax({
-                                                url: 'rfid/rfid/write?id='+$(this).parent().siblings(":first").text(),
-                                                type: 'post',
-                                                data: {
-                                                    "id":table.bootstrapTable('getSelections')
-                                                },
-                                                success:function (data) {
-                                                    Layer.alert(data);
-                                                    table.bootstrapTable('refresh');
-                                                }
-                                            })
-                                        }else{
-                                            Layer.alert("未检测到设备，请检查是否安装读卡器驱动或是否连接读卡器");
-                                        }
+                                        Layer.alert("这里为测试，暂不会写入！<br>" +
+                                            "数据库中自带了一个已写入的数据，请转移操作"+
+                                            "请复制下面的链接至IE浏览器打开！<br>" +
+                                            "" +window.location.protocol+"//"+window.location.host+
+                                            "/admin/rfid/rfid/generate_write_page?id=" +
+                                            $(this).parent().siblings(":first").text()+
+                                            "");
+                                        // if (checkRfidConn() == true){
+                                        //     // 联网查询
+                                        //     // 这里需要怎么处理
+                                        //     $.ajax({
+                                        //         // url: 'rfid/rfid/write?id='+$(this).parent().siblings(":first").text(),
+                                        //         url: 'rfid/rfid/generate_write_page?id='+$(this).parent().siblings(":first").text(),
+                                        //         type: 'post',
+                                        //         data: {
+                                        //             "id":table.bootstrapTable('getSelections')
+                                        //         },
+                                        //         success:function (data) {
+                                        //             Layer.alert(data);
+                                        //             table.bootstrapTable('refresh');
+                                        //         }
+                                        //     })
+                                        // }else{
+                                        //     Layer.alert("未检测到设备，请检查是否安装读卡器驱动或是否连接读卡器");
+                                        // }
                                     }
                                 },
                                 {
@@ -109,7 +105,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                                     name:"assign_to_dealer",
                                     title:__('Assing_to_dealer'),
                                     classname:  'btn btn-xs btn-info btn-dialog',
-                                    icon:'fa fa-list',
+                                    // icon:'fa fa-list',
                                     text:__('Assing_to_dealer'),
                                     url:'rfid/rfid/assign_to_dealer',
                                     callback:function(data){
@@ -120,34 +116,22 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                                     name:"touser",
                                     title:__('Assing_to_user'),
                                     classname:  'btn btn-xs btn-info btn-dialog',
-                                    icon:'fa fa-list',
+                                    // icon:'fa fa-list',
                                     text:__('Assing_to_user'),
                                     url:'rfid/rfid/assign_to_user',
                                     callback:function(data){
                                         console.log("接收到回传数据："+data);
                                     }
                                 },
-                                // {
-                                //     name:"recovery",
-                                //     title:__('Recovery'),
-                                //     classname:  'btn btn-xs btn-danger btn-click',
-                                //     text: __('Recovery'),
-                                //     icon:'fa fa-list',
-                                //     click:function () {
-                                //         // var id = $(this).parent().siblings(":first").text();
-                                //         $.ajax({
-                                //             url: 'rfid/rfid/recovery?id='+$(this).parent().siblings(":first").text(),
-                                //             type: 'post',
-                                //             data: {
-                                //                 "id":table.bootstrapTable('getSelections')
-                                //             },
-                                //             success:function (data) {
-                                //                 Layer.alert(data);
-                                //                 table.bootstrapTable('refresh');
-                                //             }
-                                //         });
-                                //     }
-                                // }
+                                {
+                                    name:"recovery",
+                                    title:__('Recovery'),
+                                    classname:  'btn btn-xs btn-danger btn-ajax',
+                                    // icon:'fa fa-list',
+                                    text:__('Recovery'),
+                                    url:'rfid/rfid/recovery',
+                                    confirm: '是否回收',
+                                },
                             ],
                             formatter: Table.api.formatter.operate
                         }
@@ -171,15 +155,14 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
         },
         look:function () {
         },
+        recovery:function(){
+            Controller.api.bindevent();
+        },
         submit_revision_attr:function () {
             // Form.bindevent();
             Controller.api.bindevent();
-
             Form.api.bindevent($("form[role=form]"),function() {
-                // Toastr.success("获取数据成功");
-
             },function () {
-
             },function (success,error) {
                 $.ajax({
                     type:"POST",
@@ -194,10 +177,8 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
                         });
                     }
                 });
-
                 return false;
             });
-
         },
         api: {
             bindevent: function () {
@@ -213,5 +194,13 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form','layer'], function ($,
             return false;
         }
     }
+    // 我的申请记录
+    $(document).on("click",".btn-my_revise",function () {
+        var url = "rfid/revise/index?oneself=true";
+        var msg = "我的申请记录";
+        Fast.api.open(url,msg,{
+            area:['95%','95%'],
+        });
+    })
     return Controller;
 });

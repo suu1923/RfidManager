@@ -378,7 +378,7 @@ define(['jquery', 'bootstrap', 'backend', 'addtabs', 'adminlte', 'form'], functi
                         nav.toggleClass("disable-top-badge");
                     }
                 });
-
+1
                 // 右侧控制栏切换
                 $("[data-controlsidebar]").on('click', function () {
                     change_layout($(this).data('controlsidebar'));
@@ -461,6 +461,14 @@ define(['jquery', 'bootstrap', 'backend', 'addtabs', 'adminlte', 'form'], functi
                 location.href = Backend.api.fixurl(data.url);
             }, function (data) {
                 $("input[name=captcha]").next(".input-group-addon").find("img").trigger("click");
+            });
+        },
+        register: function () {
+            //为表单绑定事件
+            Form.api.bindevent($("#register-form"), function (data) {
+                // alert();
+            }, function (data) {
+                console.log(data)
             });
         }
     };

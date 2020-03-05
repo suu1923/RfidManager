@@ -50,6 +50,7 @@ trait Backend
                 return $this->selectpage();
             }
             list($where, $sort, $order, $offset, $limit) = $this->buildparams();
+//            dump($where);
             $total = $this->model
                 ->where($where)
                 ->order($sort, $order)
@@ -109,6 +110,7 @@ trait Backend
 
                 if ($this->dataLimit && $this->dataLimitFieldAutoFill) {
                     $params[$this->dataLimitField] = $this->auth->id;
+//                    dump($params);
                 }
                 $result = false;
                 Db::startTrans();

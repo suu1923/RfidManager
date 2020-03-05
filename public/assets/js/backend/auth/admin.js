@@ -1,4 +1,4 @@
-define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefined, Backend, Table, Form) {
+    define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefined, Backend, Table, Form) {
 
     var Controller = {
         index: function () {
@@ -10,6 +10,7 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
                     edit_url: 'auth/admin/edit',
                     del_url: 'auth/admin/del',
                     multi_url: 'auth/admin/multi',
+                    // approval_url:'auth/approval/index'
                 }
             });
 
@@ -55,6 +56,9 @@ define(['jquery', 'bootstrap', 'backend', 'table', 'form'], function ($, undefin
         },
         edit: function () {
             Form.api.bindevent($("form[role=form]"));
+        },
+        approval:function () {
+            Controller.api.bindevent();
         }
     };
     return Controller;

@@ -3,11 +3,13 @@
 namespace app\admin\controller;
 
 use app\admin\model\AdminLog;
+use app\admin\model\AuthGroup;
+use app\admin\validate\Register;
 use app\common\controller\Backend;
 use think\Config;
 use think\Hook;
 use think\Validate;
-
+use app\admin\model\Approval as RegisterModel;
 /**
  * 后台首页
  * @internal
@@ -125,14 +127,58 @@ class Index extends Backend
     public function register(){
         $url = $this->request->get('url', 'index/register');
         if ($this->request->isPost()){
+            //
+//            dump($this->request->param());
+
+            // 验证
+            $email = $this->request->post('email');
+            $username = $this->request->post('username');
+            $password =     $this->request->post('password');
+            $role = $this->request->post('role');
+            $rule = [
+                'email'  => 'require|email|checkEmail',
+                'username'  => 'require|chs|length:6,20|checkUserName',
+                'password'  => 'require|length:6,20',
+                'role'  => 'require'
+            ];
+            $data = [
+                'email'   => $email,
+                'username'  => $username,
+                'password'  => $password,
+                'role'      => $role
+            ];
+            $validate = new Register($rule, [], ['username' => __('Username'), 'password' => __('Password'), 'role' => __('role')]);
+            $validate_result = $validate->check($data);
+            if (!$validate_result) {
+                $this->error($validate->getError(), $url);
+            }
+
+            $result = (new RegisterModel())->save($data);
+            if ($result){
+                $this->success("提交成功，请等待工作人员联系");
+            }else{
+                $this->error("提交失败，请重试");
+            }
 
         }
         $background = Config::get('fastadmin.login_background');
         $background = stripos($background, 'http') === 0 ? $background : config('site.cdnurl') . $background;
         $this->view->assign('background', $background);
+        $this->view->assign("publicGroup",$this->getPublicGroup());
         $this->view->assign('title', __('Register'));
         return $this->view->fetch();
 
+    }
+
+    private function getPublicGroup(){
+        $data = AuthGroup::all(function($query){
+            $query->where('public',1)->field("id,name");
+        });
+        $result = [];
+        foreach ($data as $m => $n) {
+            $result[$data[$m]['id']] = $data[$m]['name'];
+        }
+        return $result;
     }
 
 }

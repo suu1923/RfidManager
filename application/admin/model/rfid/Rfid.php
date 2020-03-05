@@ -2,7 +2,7 @@
 
 namespace app\admin\model\rfid;
 
-use function GuzzleHttp\Psr7\str;
+use app\admin\model\Admin;
 use think\Model;
 
 
@@ -32,6 +32,10 @@ class Rfid extends Model
 ////        return mb_substr($value,0,mb_strlen($value)-2);
 //    }
 
+    protected function getCreateUserIdAttr($value){
+        return Admin::getAdminNameByID($value);
+    }
+
     public function getRfidAttrCountriesIdAttr($value){
         $value = (string)sprintf("%02d",$value);
         return $this->belongsTo('AttrCountries',"attr_countries_id",'c_id')->where(['c_id'=>$value])->field('name')->find()['name'];
@@ -54,13 +58,25 @@ class Rfid extends Model
 
     public function getStatusAttr($value){
         $timec = time()-strtotime($this->create_time);
-        if ($timec > 31536000 && $value != 9 && $value != 1){  // 返回并设置状态为待回收
+        if ($timec > 31536000 && $value != 9 && $value != 1 && $value != 10){  // 返回并设置状态为待回收
             $value = 9;
             $this->update(['id'=>$this->id,'status'=>9]);
             // 设置通知
         }
         return $value;
     }
+    public function getStatus($value){
+        $status = [
+            0=>"正常",
+            2=>"异常",
+            3=>"修改审核",
+            4=>"禁用",
+            9=>"待回收",
+            10=>"已回收",
+        ];
+        return $status[$value];
+    }
+
 
     public function getCreateTimeTextAttr($value, $data)
     {

@@ -11,6 +11,8 @@ use think\db\exception\ModelNotFoundException;
 use think\Exception;
 use think\exception\DbException;
 
+use app\admin\model\rfid\Revise;
+
 /**
  * rfid管理
  *
@@ -25,10 +27,32 @@ class Rfid extends Backend
      */
     protected $model = null;
 
+    // 只允许创建者读取
+    protected $dataLimit = false;
+//
+    protected $dataLimitField = '';
+
+    protected $noNeedLogin = ['generate_write_page'];
+    protected $noNeedRight = ['look','get_dealers','check_has_apply'];
+
     public function _initialize()
     {
         parent::_initialize();
         $this->model = new \app\admin\model\rfid\Rfid;
+
+//        dump($this->auth->getGroups());
+//        dump($this->request->action());
+        if ($this->request->action() != "generate_write_page"){
+            // 查看自己相关
+            if ($this->auth->getGroupIds()[0] == config("group.manufacturer")) {
+                $this->dataLimit = 'personal';
+                $this->dataLimitField = 'create_user_id';
+            }
+            if ($this->auth->getGroupIds()[0] == config("group.sales_manufacturer")) {
+                $this->dataLimit = 'personal';
+                $this->dataLimitField = 'dealer_id';
+            }
+        }
 
     }
 
@@ -41,13 +65,11 @@ class Rfid extends Backend
             if ($this->request->request('keyField')) {
                 return $this->selectpage();
             }
-            // 获取角色
             list($where, $sort, $order, $offset, $limit) = $this->buildparams();
             $total = $this->model
                 ->where($where)
                 ->order($sort, $order)
                 ->count();
-
             $list = $this->model
                 ->where($where)
                 ->order($sort, $order)
@@ -55,7 +77,6 @@ class Rfid extends Backend
                 ->select();
             $list = collection($list)->toArray();
             $result = array("total" => $total, "rows" => $list);
-
             return json($result);
         }
         return $this->view->fetch();
@@ -113,6 +134,7 @@ class Rfid extends Backend
             }
             $this->error(__('Parameter %s can not be empty', ''));
         }
+//        dump(session("admin.id"));
         return $this->view->fetch();
     }
 
@@ -125,18 +147,22 @@ class Rfid extends Backend
     public function write(){
         if ($this->request->isPost()){
             $id = $this->request->param("id");
-            if (!$this->checkStatus($id)) return "该标签已经无法操作";
+            $isWrite = $this->checkRfid($id);
+            if ($isWrite !== true){
+                return json($isWrite);
+            }
             $this_model  = $this->model->find($id);
             if ($this_model->getData("is_write") != 1){
                 $result = $this->model->save([
                     'is_write' => 1,
                     'write_time'=> time()
                 ],['id'=>$id]);
-                return json($result ? "写入成功" : "写入失败");
+                return json($result ? __('Write_0') : __('Write_1'));
             }else{
-                return json("请勿重复写入");
+                return json(__('Write_repeat'));
             }
         }else{
+            $this->view->fetch();
             $this->error(__('Network error'));
         }
     }
@@ -150,7 +176,6 @@ class Rfid extends Backend
             $dealer_id = $this->request->param("dealer_id");
             $rfid_id = $this->request->param("ids");
 
-            // 插入数据
             $data = [
                 'rfid_id'=>$rfid_id,
                 'operator_id'=>$this->auth->id,
@@ -163,15 +188,16 @@ class Rfid extends Backend
                 if ($changeStatus){
                     $this->success();
                 }else{
-                    $this->error("操作失败");
+                    $this->error(__("Operation_0"));
                 }
             }else{
-                $this->error("操作失败");
+                $this->error(__("Operation_1"));
             }
         }
         $id = $this->request->param("ids");
-        if (!$this->checkIsWrite($id)) return $this->view->fetch("tips",['tips'=>'请先写入RFID再分配经销商']);
-        if ($this->checkIsAssign($id)) return $this->view->fetch("tips",['tips'=>'您当前已分配经销商']);
+        if ($this->checkIsAssign($id)) return $this->view->fetch("tips",['tips'=>__("Already_to_dealer")]);
+        if ($this->checkRfid($id) !== true) return $this->view->fetch("tips",['tips'=>$this->checkRfid($id)]);
+        if ($this->checkIsWrite($id)) return $this->view->fetch("tips",['tips'=>__("Wait_to_dealer_rfid_not_write")]);
 
         return $this->view->fetch('dealer_choose');
     }
@@ -191,7 +217,7 @@ class Rfid extends Backend
             ->field("id,username as name")
             ->where(["group_id" => 8, "status" => 'normal'])  // 这里是8代表目前经销商的组ID
             ->select();
-        return json(['list'=>$data ? $data : ["暂无"],'total'=>count($data)]);
+        return json(['list'=>$data ? $data : [__("Get_null")],'total'=>count($data)]);
     }
 
     /**
@@ -207,12 +233,11 @@ class Rfid extends Backend
                 $unmae = "/^[\x{4e00}-\x{9fa5}]+$/u";
                 $id_card = "/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{2}$)/";
                 if (!preg_match($unmae,$params['user_name'])){
-                    return $this->error('用户名格式错误');
+                    return $this->error(__("Validate_username_error"));
                 }
                 if(!preg_match($id_card,$params['idcard'])){
-                    return $this->error('身份证格式错误');
+                    return $this->error(__("Validate_user_id_card_error"));
                 }
-                // 插入数据
                 $data = [
                     'rfid_id'=>$rfid_id,
                     'dealer_id'=>$this->auth->id,
@@ -220,26 +245,24 @@ class Rfid extends Backend
                     'idcard'=>$params['idcard'],
                     'create_time'=>time()
                 ];
-                // 更改状态..写入数据
+                // 更改状态..写入数据您已分配用户，请在详情中查看
                 $bindDealer = Db::name("rfid_bind_user")->insert($data);
                 if ($bindDealer){
                     $changeStatus = Db::name("rfid")->where(['id'=>$rfid_id])->update(['is_to_user'=>1]);
                     if ($changeStatus){
                         $this->success();
                     }else{
-                        $this->error("操作失败");
+                        $this->error(__("Operation_0"));
                     }
                 }else{
-                    $this->error("操作失败");
+                    $this->error(__("Operation_1"));
                 }
             }
         }
-        $rfid_id = $this->request->param("ids");
-        // 已经分配
-        if (!$this->checkStatus($rfid_id)) return "该标签已经无法操作";
-        if (!$this->checkIsAssign($rfid_id)) return "请等待生成厂家分配";
-        if ($this->checkIsUsed($rfid_id)) return "您已分配用户，请在详情中查看";
-
+        $id = $this->request->param("ids");
+        if ($this->checkRfid($id) !== true) return $this->view->fetch("tips",['tips'=>$this->checkRfid($id)]);
+        if (!$this->checkIsAssign($id)) return $this->view->fetch("tips",['tips'=>__("Wait_to_dealer")]);
+        if ($this->checkIsUsed($id)) return $this->view->fetch("tips",['tips'=>__("Already_to_user")]);
         return $this->view->fetch("user_add");
 
     }
@@ -266,7 +289,7 @@ class Rfid extends Backend
      */
     private function checkIsWrite($id){
         $result = \app\admin\model\rfid\Rfid::get($id);
-        if ($result['is_write'] == 1){
+        if ($result['is_write'] != 1){
             return true;
         }
         return false;
@@ -311,20 +334,8 @@ class Rfid extends Backend
                 }
             )->toArray();
         }
-        $data['operation']['record'] = NULL;
+        $data['operation']['record'] = $this->ReacordOperation($id);
         return $this->view->fetch('rfid_info',$data);
-    }
-
-    /**
-     * 检查状态
-     * @param $id
-     * @return bool
-     * @throws DbException
-     */
-    private function checkStatus($id){
-        $result = \app\admin\model\rfid\Rfid::get($id);
-        if ($result['status'] != 0 ) return false;
-        return true;
     }
 
     /**
@@ -332,6 +343,8 @@ class Rfid extends Backend
      * @param $id
      */
     public function submit_revision_attr($ids = null,$type=""){
+        $this->checkRfid($ids);
+        // 检查状态
         $row = $this->model->where(["id"=>$ids])->column("id,rfid_attr_countries_id,rfid_attr_es_id,rfid_attr_productname_id,rfid_attr_specs_id,batch_number,serial_number")[$ids];
         if (!$row) {
             $this->error(__('No Results were found'));
@@ -340,12 +353,12 @@ class Rfid extends Backend
             if ($key == "id") continue;
             $value = (string)sprintf("%02d",$value);
         }
-        $adminIds = $this->getDataLimitAdminIds();
-        if (is_array($adminIds)) {
-            if (!in_array($row[$this->dataLimitField], $adminIds)) {
-                $this->error(__('You have no permission'));
-            }
-        }
+//        $adminIds = $this->getDataLimitAdminIds();
+//        if (is_array($adminIds)) {
+//            if (!in_array($row[$this->dataLimitField], $adminIds)) {
+//                $this->error(__('You have no permission'));
+//            }
+//        }
         if ($this->request->isPost()) {
             $params = $this->request->post("row/a");
             if ($params) {
@@ -355,7 +368,7 @@ class Rfid extends Backend
                 $data['reason'] = $params['reason'];
                 unset($params['type'],$params['reason']);
                 $diff = array_diff_assoc($params,$row);
-                if (!$diff){ $this->error("未做任何处理");}
+                if (!$diff){ $this->error(__("No_processing"));}
                 // 新旧数据处理
                 foreach ($diff as $key => &$value){
                     // data: after => before
@@ -365,31 +378,35 @@ class Rfid extends Backend
                 $data['submission_id'] = $this->auth->id;
                 $data['rfid_id'] = $ids;
                 // 添加记录
-                // 先修改上一个状态为1,再添加新的记录
+                // 先修改上一个状态为1,再添加新的记录  同时修改自身状态为3
                 Db::startTrans();
                 try{
                     $result1 = \app\admin\model\rfid\Revise::update(["status"=>1],['rfid_id'=>$ids,'submission_id'=>$this->auth->id,'option'=>0]);
                     $result2 = \app\admin\model\rfid\Revise::create($data);
+                    $result3 = $this->model->isUpdate(true)->save(['status'=>3,"id"=>$ids]);
                     Db::commit();
                 }catch (Exception $e){
                     Db::rollback();
                     $this->error($e->getMessage());
                 }
 
-                if ($result1 && $result2) {
+                if ($result1 && $result2 && $result3) {
                     $this->success();
                 }else{
-                    $this->error("提交失败");
+                    $this->error(__("Operation_1"));
                 }
             }
             $this->error(__('Parameter %s can not be empty', ''));
         }
+        $id = $this->request->param("ids");
+        if ($this->checkRfid($id) !== true) return $this->view->fetch("tips",['tips'=>$this->checkRfid($id)]);
         $info['countries'] = Db::name('rfid_attr_countries')->field('c_id,name')->select();
         $info['es'] = \app\admin\model\rfid\AttrEs::all();
         $info['specs'] = \app\admin\model\rfid\AttrSpecs::all();
         $info['product_name'] = \app\admin\model\rfid\AttrProductName::all();
         $this->view->assign("info",$info);
         $this->view->assign("row", $row);
+
         return $this->view->fetch('edit_rfid_attr');
     }
 
@@ -398,42 +415,70 @@ class Rfid extends Backend
         try {
             $attr = Db::name("rfid_attr_".$table)->order("create_time desc")->field($key . ",name")->select();
         } catch (DataNotFoundException $e) {
-            return ['list'=>["暂无数据，等待管理员添加"],'total'=>0];
+            return ['list'=>[__("Get_null")],'total'=>0];
         } catch (ModelNotFoundException $e) {
-            return ['list'=>["暂无数据，等待管理员添加"],'total'=>0];
+            return ['list'=>[__("Get_null")],'total'=>0];
         } catch (DbException $e) {
-            return ['list'=>["暂无数据，等待管理员添加"],'total'=>0];
+            return ['list'=>[__("Get_null")],'total'=>0];
         }
         return ['list'=>$attr,'total'=>count($attr)];
     }
 
     /**
      * 操作记录
-     * @param $
+     * @param
      */
-    public function ReacordOperation(){
-
+    public function ReacordOperation($r_id){
+        // 查询修改记录
+        $data['rfid_id'] = $r_id;
+        $data['status'] = 0;
+        $data['option'] = 1;
+        $template = "%s在%s申请修改了%s:%s,原因:%s";
+        $res_template = "由%s审核";
+        // 查询Resive
+        $data = Revise::where($data)->field(["submission_id","auditor_id","reason","type","attr","success","reject_reason"])->select();
+        // 统计条数
+        $result['res'] = array();
+        $num = count($data);
+        $result['num'] = 0;
+        if ($num == 0){
+            $result['res'] = __("Get_opt_null");
+        }else{
+            foreach ($data as $key){
+                if ($key['type'] == 1) $key['type'] = "属性";
+                $key['reason'] = $key['reason'] ? $key['reason'] : "无";
+                $key['reject_reason'] = $key['reject_reason'] ? $key['reject_reason'] : "无";
+                if ($key['success'] == 1){
+                    $notice = sprintf($template,$key['submission_id'][0],$key['create_time'],$key['type'],$key['attr'],$key['reason'])."。由{$key['auditor_id'][0]}审核通过<br/>";
+                }
+                if ($key['success'] == 0){
+                    $notice = sprintf($template,$key['submission_id'][0],$key['create_time'],$key['type'],$key['attr'],$key['reason'])."。由{$key['auditor_id'][0]}审核,驳回,原因:{$key['reject_reason']}<br/>";
+                }
+                array_push($result['res'],$notice);
+            }
+        }
+        $result['num'] = $num;
+        return $result;
     }
 
     /**
      * 回收
-     * @return \think\response\Json
      * @throws DataNotFoundException
      * @throws DbException
      * @throws ModelNotFoundException
      */
     public function recovery(){
-        if ($this->request->isGet()){
-            $id = $this->request->param("id");
-            $this_model  = $this->model->find($id);
-            if ($this_model->getData("status") != 1){
+        if ($this->request->isPost()){
+            $id = $this->request->param("ids");
+            $this_model  = $this->model->find($id)->toArray();
+            if ($this_model["status"] != 10){
                 $result = $this->model->save([
-                    'status' => 1,
+                    'status' => 10,
                     'update_time'=> time()
                 ],['id'=>$id]);
-                return json($result ? "回收成功" : "回收成功");
+                $this->success($result ? __("Recover_0") : __("Recover_1"));
             }else{
-                return json("请勿重复回收");
+                $this->error(__("Recover_repeat"));
             }
         }else{
             $this->error(__('Network error'));
@@ -446,6 +491,7 @@ class Rfid extends Backend
      * @return array
      */
     public function generateRfidParam($params){
+
         $result = array();
         // 组成部分            // 顺序
         // 省级+当前企业编号
@@ -459,7 +505,8 @@ class Rfid extends Backend
         // 产品批号（年月）
         $result['batch'] = $params['batch_number'];
         // 流水号
-        $result['serial'] = $params['serial_number'];
+        $result['serial'] = (string)sprintf("%02d",$params['serial_number']);
+
         return join("",$result);
     }
 
@@ -470,10 +517,53 @@ class Rfid extends Backend
         if ($this->request->isPost()){
             $result = \app\admin\model\rfid\Revise::get(['rfid_id'=>$this->request->param("ids"),'submission_id'=>$this->auth->id,"option"=>0,"status"=>0]);
             return !$result || $result == NULL
-                ? json(["status"=>0,"msg"=>"提交后可在我的申请中查看，审批通过后系统自动更改该RFID相关关联数据，并在通知中告知您结果！"])
-                : json(["status"=>1,"msg"=>"您当前已有一个申请正在审核中，再次提交会覆盖掉当前待审核的数据，是否确定？"]);
+                ? json(["status"=>0,"msg"=>__('Check_has_apply_tips_0')])
+                : json(["status"=>1,"msg"=>__('Check_has_apply_tips_1')]);
         }else{
             $this->error(__('Network error'));
         }
+    }
+
+    /**
+     * 权限检查
+     */
+    public function checkRfid($id,$rule=''){
+        /**
+         * 状态如果是损坏、异常、待回收、已回收、在修改状态，所有操作不允许
+         *
+         * 1. 检查状态
+         * 2. 检查是否是该账户下拥有
+         * 3. 重订属性
+         */
+
+        $data = $this->model->find($id);
+        $status = $data['status'];
+        if ($status != 0){
+            $status_text = $this->model->getStatus($status);
+            return __("Status_error",$status_text);
+        }
+        return true;
+    }
+
+    /**
+     * 生成临时写入页面
+     */
+    public function generate_write_page(){
+        // 设置有效时长
+//        return "dddd";
+        // 生成序列号，前面加00000
+        $rfid_id = $this->request->param("id");
+        if (empty($rfid_id)) return "拒绝访问";
+        // 查询ID是否正确
+        $data = $this->model->where(["id"=>$rfid_id])->field(["id","r_id"])->find()->toArray();
+
+//        dump(count($data));
+
+        if (!$data || count($data) == 0) return "ID错误";
+
+        $data['r_id'] = (string)"000000".$data['r_id'];
+//        dump($data['r_id']);
+        $this->assign("rfid",$data['r_id']);
+        return $this->view->fetch("w_page");
     }
 }

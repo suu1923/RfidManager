@@ -1,0 +1,1 @@
+<?php/** * Created by PhpStorm. * User: a1538_000 * Date: 2020/3/1 * Time: 12:30 */return [    // 生产角色ID    "manufacturer" => 7,    // 销售角色ID    "sales_manufacturer" => 8];

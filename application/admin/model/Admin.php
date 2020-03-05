@@ -8,6 +8,7 @@ use think\Session;
 class Admin extends Model
 {
 
+
     // 开启自动写入时间戳字段
     protected $autoWriteTimestamp = 'int';
     // 定义时间戳字段名
@@ -39,6 +40,10 @@ class Admin extends Model
      */
     public static function getAdminNameByID($id){
         return (new Admin)->where(['id'=>$id])->column("username");
+    }
+
+    protected function getNickNameAttr($value){
+        return (string)$value;
     }
 
 }

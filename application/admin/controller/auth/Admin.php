@@ -117,11 +117,13 @@ class Admin extends Backend
     /**
      * 添加
      */
-    public function add()
+    public function add($apply='')
     {
-        if ($this->request->isPost()) {
+        if ($this->request->isPost() || !empty($apply)) {
+//            dump($apply);
             $this->token();
-            $params = $this->request->post("row/a");
+            $params = $apply ? $apply : $this->request->post("row/a");
+//            dump($params);
             if ($params) {
                 if (!Validate::is($params['password'], '\S{6,16}')) {
                     $this->error(__("Please input correct password"));
@@ -133,7 +135,7 @@ class Admin extends Backend
                 if ($result === false) {
                     $this->error($this->model->getError());
                 }
-                $group = $this->request->post("group/a");
+                $group = $apply ? $apply['role'] : $this->request->post("group/a");
 
                 //过滤不允许的组别,避免越权
                 $group = array_intersect($this->childrenGroupIds, $group);
@@ -142,9 +144,9 @@ class Admin extends Backend
                     $dataset[] = ['uid' => $this->model->id, 'group_id' => $value];
                 }
                 model('AuthGroupAccess')->saveAll($dataset);
-                $this->success();
+                return $apply ? true : $this->success();
             }
-            $this->error();
+            return $apply ? true : $this->error();
         }
         return $this->view->fetch();
     }
@@ -177,7 +179,7 @@ class Admin extends Backend
                 //这里需要针对username和email做唯一验证
                 $adminValidate = \think\Loader::validate('Admin');
                 $adminValidate->rule([
-                    'username' => 'require|regex:\w{3,12}|unique:admin,username,' . $row->id,
+                    'username' => 'require|chs|unique:admin,username,' . $row->id,
                     'email'    => 'require|email|unique:admin,email,' . $row->id,
                     'password' => 'regex:\S{32}',
                 ]);
@@ -260,4 +262,5 @@ class Admin extends Backend
         $this->dataLimitField = 'id';
         return parent::selectpage();
     }
+
 }

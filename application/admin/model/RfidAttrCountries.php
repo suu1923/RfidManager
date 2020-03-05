@@ -27,11 +27,14 @@ class RfidAttrCountries extends Model
     protected $append = [
 
     ];
-    
-
-    
 
 
+
+
+    protected function setUpdateTimeAttr($value)
+    {
+        return $value === '' ? null : ($value && !is_numeric($value) ? strtotime($value) : $value);
+    }
 
 
 

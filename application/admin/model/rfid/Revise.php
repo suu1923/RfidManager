@@ -37,6 +37,11 @@ class Revise extends Model
     public function getSubmissionIdAttr($value){
         return Admin::getAdminNameByID($value);
     }
+
+    public function getAuditorIdAttr($value){
+        return Admin::getAdminNameByID($value);
+    }
+
     public function getAttrAttr($value){
         $value = json_decode($value,true);
         // 修改名称

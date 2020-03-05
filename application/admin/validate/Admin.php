@@ -12,7 +12,7 @@ class Admin extends Validate
      */
     protected $rule = [
 //        'username' => 'require|regex:\w{3,12}|unique:admin',
-        'username' => 'require',
+        'username' => 'require|unique:admin,username',
         'nickname' => 'require',
         'password' => 'require|regex:\S{32}',
         'email'    => 'require|email|unique:admin,email',

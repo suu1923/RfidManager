@@ -5,6 +5,8 @@ namespace app\admin\controller\rfid;
 use app\common\controller\Backend;
 use think\Db;
 use think\Exception;
+use app\admin\model\rfid\Rfid as RfidModel;
+use app\admin\model\rfid\Revise as ReviseModel;
 use think\Lang;
 
 /**
@@ -21,21 +23,32 @@ class Revise extends Backend
      */
     protected $model = null;
 
+    protected $noNeedRight = ['*'];
+
+    // 只允许创建者读取
+    protected $dataLimit = false;
+//
+    protected $dataLimitField = '';
+
     public function _initialize()
     {
         parent::_initialize();
-
         $this->model = new \app\admin\model\rfid\Revise;
-//        $this->view->assign("successList", $this->model->getSuccessList());
-//        $this->view->assign("optionList", $this->model->getOptionList());
 
-//        $this->view->assign("statusList", $this->model->getStatusList());
+        // 提交者ID
+//        if ($this->auth->getGroupIds()[0] == config("group.manufacturer")) {
+        if (in_array($this->auth->getGroupIds()[0],config("group"))) {
+            $this->dataLimit = 'personal';
+            $this->dataLimitField = 'submission_id';
+        }
     }
 
     public function index($tag="")
     {
         //设置过滤方法
         $this->request->filter(['strip_tags']);
+        $oneself = $this->request->param("oneself");
+
         if ($this->request->isAjax()) {
             //如果发送的来源是Selectpage，则转发到Selectpage
             if ($this->request->request('keyField')) {
@@ -43,9 +56,18 @@ class Revise extends Backend
             }
 //             设置不同状态的方式
 //            if ($tag == 0) $additional = ['status'=>0];
-            $additional = ['status'=>0];
 //            if ($tag == 1 ) $additional = ['option'=>1,'status'=>0];
 //            if ($tag == 2 ) $additional = ['option'=>0,'status'=>0];
+            $additional = [];
+            if ($oneself) {
+//                $additional['submission_id'] = $this->auth->id;
+                // 移除状态为0，自己可查看自己提价的所有
+//                unset($additional['status']);
+            }else{
+                $additional['status'] = 0;
+            }
+
+
             list($where, $sort, $order, $offset, $limit) = $this->buildparams();
             $total = $this->model
                 ->where($where)
@@ -61,7 +83,6 @@ class Revise extends Backend
                 ->select();
             $list = collection($list)->toArray();
             $result = array("total" => $total, "rows" => $list);
-
             return json($result);
         }
         // 设置标题
@@ -78,7 +99,7 @@ class Revise extends Backend
             $v['tag'] = $tags[$index];
             $index++;
         }
-
+        if ($oneself) $this->assignconfig("oneself",true);
         $this->view->assign("siteList",$siteList);
         return $this->view->fetch();
     }
@@ -100,11 +121,13 @@ class Revise extends Backend
             $type = $this->request->param("type");
             $data['option'] = 1;
             $data['auditor_id'] = $this->auth->id;
-            $data['reason'] = $type == 0 ? "" : $this->request->param(["reason"]);
+            $data['reject_reason'] = $type == 0 ? "" : $this->request->param("reason");
             $data['option_time'] = time();
             // 获取当前修改的信息，重新排列组合
             // 通过后修改RFID信息，如果操作是修改属性的话
             if ($type == 0){
+                $result = false; // RFID 表
+                $result1 = false;// 申请表
                 Db::startTrans();
                 try{
                     $data['success'] = 1;
@@ -125,26 +148,65 @@ class Revise extends Backend
                     $r_id = (new Rfid())->generateRfidParam($params);
                     // 得到新的RFID编号
                     $params['r_id'] = $r_id;
+                    // 重置写入状态
                     $params['is_write'] = 0;
-                    $result = (new \app\admin\model\rfid\Rfid())->save($params,['id'=>$rfid['rfid_id']]);
-                    $result1 = $this->model->save($data,['id'=>$id]);
-
-
-                    if ($result && $result1) $this->success();
-                    else $this->error("操作失败");
+                    $params['status'] = 0;// 回复正常状态
+                    $result = RfidModel::update($params);
+                    $data['id'] = $id;
+                    $result1 = ReviseModel::update($data);
                     Db::commit();
                 }catch (Exception $e){
                     Db::rollback();
                     $this->error($e->getMessage());
                 }
+                if ($result && $result1) $this->success();
+                else $this->error("操作失败");
+            }
+            // 驳回
+            if ($type == 1){
+                $data['success'] = 0;
+                $result = ReviseModel::update($data,['id'=>$id]);
+                if ($result) $this->success();
+                else $this->error("操作失败");
+            }
+        }else{
+            // 填写驳回原因
+            $id = $this->request->param("ids");
+            $this->assign("id",$id);
+            return $this->view->fetch("reason");
+        }
+    }
+
+    /**
+     * 撤回
+     */
+    public function withdraw(){
+        if ($this->request->isAjax()){
+            $id = $this->request->param("ids");
+            $data['option_time'] = time();
+            $data['id'] = $id;
+            $data['status'] = 1;
+            $result = false;
+            $result2 = false;
+            Db::startTrans();
+            try{
+                $result = ReviseModel::update($data);
+                // 获取到这个ID
+                $rfid_id = (new ReviseModel())->where(["id"=>$id])->value("rfid_id");
+//                dump($rfid_id);
+                // 修改RFID表的状态为0
+//                \app\admin\model\rfid\Rfid::update(['id'=>$id,'status'=>0]);
+                $result2 = (new \app\admin\model\rfid\Rfid())->isUpdate(true)->save(['id'=>$rfid_id,'status'=>0]);
+                Db::commit();
+            }catch (Exception $e){
+                Db::rollback();
+                $this->error($e);
             }
 
-//            if ($result) $this->success();
-//
-//            else $this->error("审核失败");
+            if ($result && $result2) $this->success("撤回成功");
+            else $this->error("撤回失败");
         }else{
             $this->error(__('Network error'));
         }
     }
-
 }

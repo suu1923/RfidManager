@@ -24,7 +24,8 @@ return [
     'Option_time'   => '申请处理时间',
     'Status'        => '状态',
     'Status 0'      => '正常',
-    'Status 1'      => '异常',
+    'Status 1'      => '已撤回',
+    'Status 2'      => '未知',
     'Countrie_id'     => '省级行政区',
     'Es_id'           => '执行标准',
     'Project_name_id' => '产品名称',
@@ -37,5 +38,7 @@ return [
     'Approval'        => '审批',
     'Adopt'           => '通过',
     'Reject'          => '驳回',
-
+    'Reason'          => '驳回原因',
+    'Reason_info'     => '请填写驳回原因,30字以内。通过不需要填写',
+    'Withdraw'        => '撤回',
 ];

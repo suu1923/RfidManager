@@ -33,7 +33,7 @@ text-align: left;
     </tr>
     <tr>
         <td>{:__('Create_user_id')}</td>
-        <td>{$baseInfo.create_user_id}</td>
+        <td>{$baseInfo.create_user_id[0]}</td>
     </tr>
     <tr>
         <td>{:__('Create_time')}</td>
@@ -95,15 +95,21 @@ text-align: left;
     {/if}
     <tr>
         <td>{:__('Status')}</td>
-        {if condition="getTrueId($baseInfo.id) eq true"}
-            <td><span class="label label-success">{:__('Normal')}</span></td>
-        {else /}
-            <td><span class="label label-danger">{:__('Damage')}</span></td>
-        {/if}
+        <td><span class="label label-{$baseInfo.status|getStatus=###,'class'}">{$baseInfo.status|getStatus=###,'text'}</span></td>
+        <!--{if condition="getTrueId($baseInfo.id) eq true"}-->
+            <!--<td><span class="label label-success">{:__('Normal')}</span></td>-->
+        <!--{else /}-->
+            <!--<td><span class="label label-danger">{:__('Damage')}</span></td>-->
+        <!--{/if}-->
     </tr>
     <tr>
         <td>{:__('Operation_record')}:</td>
-        <td>待添加</td>
+        <td>
+            <dd style="color: red;">共{$operation.record.num}条记录</dd>
+            {volist name="$operation.record.res" id="vo" empty="暂时没有数据"}
+            <br> <dd>{$vo}</dd><br>
+            {/volist}
+        </td>
     </tr>
     </tbody>
 </table>

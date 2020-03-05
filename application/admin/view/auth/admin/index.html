@@ -7,6 +7,7 @@
                 <div class="widget-body no-padding">
                     <div id="toolbar" class="toolbar">
                         {:build_toolbar('refresh,add,delete')}
+                        <a href="auth/approval/index" class="btn btn-info btn-dialog btn-approval {:$auth->check('auth/admin/approval')?'':'hide'}" data-name="approval" title="{:__('Approval')}" ><i class="fa fa-list"></i> {:__('Approval')}</a>
                     </div>
                     <table id="table" class="table table-striped table-bordered table-hover" 
                            data-operate-edit="{:$auth->check('auth/admin/edit')}" 

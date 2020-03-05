@@ -206,7 +206,22 @@ function getTrueId($id){
     return (substr($result['r_id'],-2) != "00") ? false : true;
 }
 
+/**
+ * @param $value
+ * @return mixed
+ * RFID 状态
+ */
+function getStatus($value,$ret='text'){
+    $class =  array(0=>'success',1=>'warning',3=>'danger',9=>'warning',10=>'danger');
+    return $ret=="class" ? $class[$value] : (new \app\admin\model\rfid\Rfid())->getStatus($value);
+}
 
+/**
+ * @param $a
+ * @param $b
+ * @return array
+ * 日期检查
+ */
 function format($a,$b){
     //检查两个日期大小，默认前小后大，如果前大后小则交换位置以保证前小后大
     if(strtotime($a)>strtotime($b)) list($a,$b)=array($b,$a);
@@ -226,7 +241,7 @@ function format($a,$b){
             $result['daily']   = $d;
         }
     }else{
-        $y=    floor($extend/365);
+        $y = floor($extend/365);
         if($y>=1){                //如果超过一年
             $start = strtotime($a.'+'.$y.'year');
             $a     = date('Y-m-d',$start);
